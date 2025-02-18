@@ -1,21 +1,7 @@
-/*import { Text, View } from "react-native";
-
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}*/
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList } from "react-native";
 import axios from "axios";
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const App = () => {
   const [users, setUsers] = useState([]);
