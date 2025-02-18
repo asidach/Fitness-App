@@ -14,7 +14,7 @@ const App = () => {
 
   return (
     <View>
-      <Text>Users List</Text>
+      <Text>Users      List</Text>
       <FlatList
         data={users}
         keyExtractor={(item) => item._id}
