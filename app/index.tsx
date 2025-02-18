@@ -1,28 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList } from "react-native";
+import { Text, FlatList, TextInput } from "react-native";
 import axios from "axios";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
-const App = () => {
-  const [users, setUsers] = useState([]);
+const LoginPage = () => {
+
+  const [userOrEmail, setUserOrEmail] = useState(''); // user can enter their username or email address
+  const [password, setPassword] = useState(''); // password associated with account
+
+  /*
+  Example code to call from MongoDB
 
   useEffect(() => {
-    axios.get("http://localhost:5000/users") // Change to your server URL
+    axios.get("http://localhost:5001/users") // Change to your server URL
       .then(response => setUsers(response.data))
       .catch(error => console.log(error));
   }, []);
+  */
 
   return (
-    <View>
-      <Text>Users      List</Text>
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <Text>{item.name} - {item.email}</Text>}
-      />
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView>
+        <Text>Users List</Text>
+        <TextInput
+          onChangeText={setUserOrEmail}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 
-export default App;
+export default LoginPage;
 
