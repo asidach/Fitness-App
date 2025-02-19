@@ -16,6 +16,7 @@ mongoose
 // Create a sample model
 const User = mongoose.model("User", new mongoose.Schema({ name: String, email: String }));
 
+/*
 // API endpoint to get all users
 app.get("/users", async (req, res) => {
   const users = await User.find();
@@ -28,6 +29,11 @@ app.post("/users", async (req, res) => {
   await newUser.save();
   res.json(newUser);
 });
+*/
+
+// import routes
+const userRoutes = require("./routes/users");
+app.use("/users", userRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5001;

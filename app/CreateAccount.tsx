@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet, TextInput, Pressable, NativeSyntheticEvent, TextInputEndEditingEventData } from "react-native";
+import { Text, StyleSheet, TextInput, Pressable, Alert} from "react-native";
 import axios from "axios";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -87,6 +87,29 @@ const CreateAccount = () => {
     setPasswordsMismatch(password !== confirmPass);
 
   }
+
+  const handleRegister = async () => {
+
+    try {
+        const response = await fetch("http://172.16.0.230:5001/users/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          Alert.alert("Success", "User created successfully");
+        } else {
+          Alert.alert("Error", data.error || "Something went wrong");
+        }
+      } catch (error) {
+        Alert.alert("Error", "Could not connect to server");
+      }
+    };
   
 
   return (
@@ -137,6 +160,7 @@ const CreateAccount = () => {
         {passwordsMismatch && <Text>Passwords do not match</Text>}
         <Pressable
           style={styles.button}
+          onPress={handleRegister}
         >
           <Text>Create Account</Text>
         </Pressable>
