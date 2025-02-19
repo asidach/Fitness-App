@@ -20,6 +20,7 @@ const CreateAccount = () => {
   const [password, setPassword] = useState(''); // password for account security
   const [passwordBlank, setPasswordBlank] = useState(false); // check if user entered a password
   const [passwordLengthBad, setPasswordLengthBad] = useState(false); // check that password length is proper
+  const [passwordInvalid, setPasswordInvalid] = useState(false); // check that password meets compplexity requirements
 
   // variables to store confirmed password information
   const [confirmPass, setConfirmPass] = useState(''); // compare to password to ensure it is entered correctly
@@ -69,6 +70,14 @@ const CreateAccount = () => {
     // password must be within 8 and 40 characters
     setPasswordLengthBad(password.length < 8 || password.length > 40);
 
+    // password must have at least one uppercase, one lowercase, and one number
+    if (password !== '') {
+        const uppercasePattern = /[A-Z]/; // uppercase
+        const lowercasePattern = /[a-z]/; // lowercase
+        const numberPattern = /[0-9]/; // number
+        setPasswordInvalid(!uppercasePattern.test(password) && lowercasePattern.test(password) && numberPattern.test(password));
+    }
+
   }
 
   // check that password fields match each other
@@ -115,6 +124,7 @@ const CreateAccount = () => {
         />
         {passwordBlank && <Text>Password cannot be blank</Text>}
         {!passwordBlank && passwordLengthBad && <Text>Password must be between 8 and 40 characters</Text>}
+        {!passwordBlank && !passwordLengthBad && passwordInvalid && <Text>Password must contain at least one uppercase letter, one lowercase letter, and one number</Text>}
         <Text>Confirm Password</Text>
         <TextInput
           placeholder="Confirm Password"
