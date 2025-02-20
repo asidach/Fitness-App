@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Text, StyleSheet, TextInput, Pressable, Alert} from "react-native";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+
 
 const CreateAccount = () => {
 
@@ -25,6 +27,9 @@ const CreateAccount = () => {
   // variables to store confirmed password information
   const [confirmPass, setConfirmPass] = useState(''); // compare to password to ensure it is entered correctly
   const [passwordsMismatch, setPasswordsMismatch] = useState(false); // check that the password fields match each other
+
+  // router to navigate between screens
+  const router = useRouter();
 
   // check data validations on username
   // if all good, push username to database
@@ -109,6 +114,7 @@ const CreateAccount = () => {
       } catch (error) {
         Alert.alert("Error", "Could not connect to server");
       }
+
     };
   
 
@@ -164,7 +170,8 @@ const CreateAccount = () => {
         >
           <Text>Create Account</Text>
         </Pressable>
-        <Text>Already have an account? Log in here</Text>
+        <Text>Already have an account? Log in </Text>
+        <Text onPress={() => router.push("/LoginPage")}>here</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   );
