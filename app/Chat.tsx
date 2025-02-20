@@ -3,8 +3,7 @@ import { View, TextInput, Button, Text, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import React from "react";
-
-const API_KEY = process.env.OPENAI_API_KEY;
+const key = require('../key.json');
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -28,7 +27,7 @@ export default function ChatScreen() {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
+            Authorization: `Bearer ${key.OPENAI_API_KEY}`,
           },
         }
       );
