@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet, TextInput, Pressable, NativeSyntheticEvent, TextInputEndEditingEventData } from "react-native";
+import { Text, StyleSheet, TextInput, Pressable, Alert} from "react-native";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+
 
 const CreateAccount = () => {
 
@@ -25,6 +27,12 @@ const CreateAccount = () => {
   // variables to store confirmed password information
   const [confirmPass, setConfirmPass] = useState(''); // compare to password to ensure it is entered correctly
   const [passwordsMismatch, setPasswordsMismatch] = useState(false); // check that the password fields match each other
+
+  // error message for server tasks
+  const [message, setMessage] = useState('');
+
+  // router to navigate between screens
+  const router = useRouter();
 
   // check data validations on username
   // if all good, push username to database
@@ -87,6 +95,35 @@ const CreateAccount = () => {
     setPasswordsMismatch(password !== confirmPass);
 
   }
+
+  const checkEmailAvailability = async () => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:5001/check-email?email=${email}`);
+      setMessage(response.data.message);
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false; // Assume email doesn't exist if an error occurs
+    }
+  };
+
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5001/register", {
+        username,
+        email,
+        password,
+      });
+      setMessage(response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage("Error: " + (error.response?.data?.error || error.message));
+      } else if (error instanceof Error) {
+        setMessage("Error: " + error.message);
+      } else {
+        setMessage("An unknown error occurred.");
+      }
+    }
+  };
   
 
   return (
@@ -108,7 +145,7 @@ const CreateAccount = () => {
           placeholder="Enter Email"
           style={styles.textInput}
           onChangeText={setEmail}
-          onBlur={() => { checkEmail() }}
+          onBlur={() => { checkEmailAvailability() }}
           value={email}
         />
         {emailBlank && <Text>Email cannot be blank</Text>}
@@ -137,10 +174,13 @@ const CreateAccount = () => {
         {passwordsMismatch && <Text>Passwords do not match</Text>}
         <Pressable
           style={styles.button}
+          onPress={handleRegister}
         >
           <Text>Create Account</Text>
         </Pressable>
-        <Text>Already have an account? Log in here</Text>
+        <Text>Already have an account? Log in </Text>
+        <Text onPress={() => router.push("/LoginPage")}>here</Text>
+        <Text>{message}</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   );

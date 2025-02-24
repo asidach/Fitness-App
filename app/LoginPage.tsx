@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Text, StyleSheet, TextInput, Pressable } from "react-native";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const LoginPage = () => {
 
   const [userOrEmail, setUserOrEmail] = useState(''); // user can enter their username or email address
   const [password, setPassword] = useState(''); // password associated with account
+
+  // router to navigate between screens
+  const router = useRouter();
 
   useEffect(() => {
     axios.get("http://localhost:5001/users") // Change to your server URL
@@ -35,7 +39,8 @@ const LoginPage = () => {
         >
           <Text>Login</Text>
         </Pressable>
-        <Text>Don't have an account? Create one here</Text>
+        <Text>Don't have an account? Create one </Text>
+        <Text onPress={() => router.push("/CreateAccount")}>here</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   );
