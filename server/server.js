@@ -66,11 +66,38 @@ app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
+    const newUser = new User({ username, email, password });
     await newUser.save();
     res.json({ success: true, message: "User created successfully!" });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// attempt login based on the username and password entered
+app.get("/login", async (req, res) => {
+  const { username, password } = req.query;
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      res.json({ success: true, message: "No username found" });
+    } else {
+
+      const passwordMatch = password === user.password;
+
+      if (!passwordMatch) {
+        res.json({ success: true, message: "Invalid username or password" });
+      } else {
+        res.json({ success: true, message: "Successful login" });
+      }
+
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "An unknown error occurred.",
+    });
   }
 });
 

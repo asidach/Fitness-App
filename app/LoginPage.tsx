@@ -6,41 +6,68 @@ import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const LoginPage = () => {
 
-  const [userOrEmail, setUserOrEmail] = useState(''); // user can enter their username or email address
+  const [username, setUsername] = useState(''); // username of user
   const [password, setPassword] = useState(''); // password associated with account
+
+  const [correctLogin, setCorrectLogin] = useState(false); // boolean if user entered credentials correctly
+
+  // string to test server capabilities
+  const [message, setMessage] = useState('');
 
   // router to navigate between screens
   const router = useRouter();
 
+  // if login information is correct, navigate to the home screen
   useEffect(() => {
-    axios.get("http://localhost:5001/users") // Change to your server URL
-      .then(response => setPassword(response.data))
-      .catch(error => console.log(error));
-  }, []);
-  
+
+    if (correctLogin) {
+      router.push("/Chat");
+    }
+
+  });
+
+  // check that username and password were entered correctly
+  const handleLogin = async () => {
+
+     // contact server to see if login credentials are correct
+     try {
+      const response = await axios.get(`http://127.0.0.1:5001/login?username=${username}&password=${password}`);
+      setCorrectLogin(response.data.message === 'Successful login'); // check response message
+      setMessage(response.data.message);
+    } catch (error) {
+      console.error("Error logging in:", error);
+      return false;
+    }
+
+  }
 
   return (
     <SafeAreaProvider>
       <SafeAreaView>
-        <Text>Username or Email</Text>
+        <Text>Username</Text>
         <TextInput
-          placeholder="Username or Email"
+          placeholder="Username"
           style={styles.textInput}
-          onChangeText={setUserOrEmail}
+          onChangeText={setUsername}
+          value={username}
         />
         <Text>Password</Text>
         <TextInput
           placeholder="Password"
           style={styles.textInput}
           onChangeText={setPassword}
+          value={password}
         />
         <Pressable
           style={styles.button}
+          onPress={handleLogin}
         >
           <Text>Login</Text>
         </Pressable>
         <Text>Don't have an account? Create one </Text>
         <Text onPress={() => router.push("/CreateAccount")}>here</Text>
+        {correctLogin && <Text>Success</Text>}
+        <Text>{message}</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   );
