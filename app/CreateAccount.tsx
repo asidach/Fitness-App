@@ -31,7 +31,8 @@ const CreateAccount = () => {
   const [passwordsMismatch, setPasswordsMismatch] = useState(false); // check that the password fields match each other
 
   // check that all data validations are met in order to create a user
-  const [userCreatable, setUserCreatable] = useState(true);
+  const [userCreatable, setUserCreatable] = useState(false);
+  const [correctCreation, setCorrectCreation] = useState(false); // check if user was created correctly
 
   // check if Create Account button has been clicked yet
   // used to hide "fix errors" message if the button has not been clicked yet
@@ -42,6 +43,40 @@ const CreateAccount = () => {
 
   // router to navigate between screens
   const router = useRouter();
+
+
+  // if account information is correct, navigate to the home screen
+  useEffect(() => {
+
+    // if items are blank but the user has not clicked into any of the TextInputs, set booleans to true
+    // this is to ensure that the user cannot continue if they have not entered any information
+    if (username === '') {
+      setUsernameBlank(true);
+      setUserCreatable(false);
+    }
+
+    if (email === '') {
+      setEmailBlank(true);
+      setUserCreatable(false);
+    }
+
+    if (password === '') {
+      setPasswordBlank(true);
+      setUserCreatable(false);
+    }
+
+    // combine all data validation booleans to see if user is creatable
+    setUserCreatable(!usernameBlank && !userLengthBad && !userInvalidCharacters && !userInUse
+      && !emailBlank && !emailInvalidCharacters && !emailInUse
+      && !passwordBlank && !passwordLengthBad && !passwordInvalid && !passwordsMismatch
+    )
+
+    if (correctCreation) {
+      router.push("/Chat");
+    }
+
+  });
+
 
   // check data validations on username
   // if all good, push username to database
@@ -131,29 +166,6 @@ const CreateAccount = () => {
     // set button clicked to true
     setButtonClicked(true);
 
-    // if items are blank but the user has not clicked into any of the TextInputs, set booleans to true
-    // this is to ensure that the user cannot continue if they have not entered any information
-    if (username === '') {
-      setUsernameBlank(true);
-      setUserCreatable(false);
-    }
-
-    if (email === '') {
-      setEmailBlank(true);
-      setUserCreatable(false);
-    }
-
-    if (password === '') {
-      setPasswordBlank(true);
-      setUserCreatable(false);
-    }
-
-    // combine all data validation booleans to see if user is creatable
-    setUserCreatable(!usernameBlank && !userLengthBad && !userInvalidCharacters && !userInUse
-        && !emailBlank && !emailInvalidCharacters && !emailInUse
-        && !passwordBlank && !passwordLengthBad && !passwordInvalid && !passwordsMismatch
-    )
-
     // only add user to database if all data validations are good
     if (userCreatable) {
 
@@ -163,6 +175,7 @@ const CreateAccount = () => {
           email,
           password,
         });
+        setCorrectCreation(response.data.message === 'User created successfully!')
         setMessage(response.data.message);
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -190,7 +203,7 @@ const CreateAccount = () => {
           onBlur={() => { checkUsername() }}
           value={username}
         />
-        {usernameBlank && <Text>Username cannot be blank</Text>}
+        {buttonClicked && usernameBlank && <Text>Username cannot be blank</Text>}
         {!usernameBlank && userLengthBad && <Text>Username must be between 4 and 30 characters</Text>}
         {!usernameBlank && !userLengthBad && userInvalidCharacters && <Text>Username must only contain letters, numbers, or special characters: - _ .</Text>}
         {!usernameBlank && !userLengthBad && !userInvalidCharacters && userInUse && <Text>Username is unavailable. Please use a different username, or log in if you already have an account</Text>}
@@ -202,7 +215,7 @@ const CreateAccount = () => {
           onBlur={() => { checkEmail() }}
           value={email}
         />
-        {emailBlank && <Text>Email cannot be blank</Text>}
+        {buttonClicked && emailBlank && <Text>Email cannot be blank</Text>}
         {!emailBlank && emailInvalidCharacters && <Text>Please enter a valid email</Text>}
         {!emailBlank && !emailInvalidCharacters && emailInUse && <Text>Email is unavailable. Please use a different email, or log in if you already have an account</Text>}
         <Text>Password</Text>
@@ -214,7 +227,7 @@ const CreateAccount = () => {
           onBlur={() => { checkPassword() }}
           value={password}
         />
-        {passwordBlank && <Text>Password cannot be blank</Text>}
+        {buttonClicked && passwordBlank && <Text>Password cannot be blank</Text>}
         {!passwordBlank && passwordLengthBad && <Text>Password must be between 8 and 40 characters</Text>}
         {!passwordBlank && !passwordLengthBad && passwordInvalid && <Text>Password must contain at least one uppercase letter, one lowercase letter, and one number</Text>}
         <Text>Confirm Password</Text>
