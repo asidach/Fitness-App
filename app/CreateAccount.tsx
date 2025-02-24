@@ -12,11 +12,13 @@ const CreateAccount = () => {
   const [usernameBlank, setUsernameBlank] = useState(false); // check if user entered a username
   const [userLengthBad, setUserLengthBad] = useState(false); // check that username length is proper
   const [userInvalidCharacters, setUserInvalidCharacters] = useState(false); // check that username only contains valid characters
+  const [userInUse, setUserInUse] = useState(false); // check that username is not in use by any other users
 
   // variables to store email information
   const [email, setEmail] = useState(''); // personal email of user, will be used for notifications
   const [emailBlank, setEmailBlank] = useState(false); // check if user entered an email
   const [emailInvalidCharacters, setEmailInvalidCharacters] = useState(false); // check that email matches proper format
+  const [emailInUse, setEmailInUse] = useState(false); // check that email is not in use by any other users
 
   // variables to store password information
   const [password, setPassword] = useState(''); // password for account security
@@ -28,7 +30,14 @@ const CreateAccount = () => {
   const [confirmPass, setConfirmPass] = useState(''); // compare to password to ensure it is entered correctly
   const [passwordsMismatch, setPasswordsMismatch] = useState(false); // check that the password fields match each other
 
-  // error message for server tasks
+  // check that all data validations are met in order to create a user
+  const [userCreatable, setUserCreatable] = useState(true);
+
+  // check if Create Account button has been clicked yet
+  // used to hide "fix errors" message if the button has not been clicked yet
+  const [buttonClicked, setButtonClicked] = useState(false);
+
+  // error message for server testing tasks
   const [message, setMessage] = useState('');
 
   // router to navigate between screens
@@ -51,6 +60,15 @@ const CreateAccount = () => {
         setUserInvalidCharacters(!usernamePattern.test(username));
     }
 
+    // contact server to see if username exists in database
+    try {
+      const response = await axios.get(`http://127.0.0.1:5001/check-username?username=${username}`);
+      setUserInUse(response.data.message === 'Username already exists'); // check response message
+    } catch (error) {
+      console.error("Error checking username:", error);
+      return false; // Assume username doesn't exist if an error occurs
+    }
+
   }
 
   // check data validations on email
@@ -64,6 +82,15 @@ const CreateAccount = () => {
     if (email != '') {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         setEmailInvalidCharacters(!emailPattern.test(email));
+    }
+
+    // contact server to see if email exists in database
+    try {
+      const response = await axios.get(`http://127.0.0.1:5001/check-email?email=${email}`);
+      setEmailInUse(response.data.message === 'Email already exists'); // check response message
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false; // Assume email doesn't exist if an error occurs
     }
 
   }
@@ -96,33 +123,59 @@ const CreateAccount = () => {
 
   }
 
-  const checkEmailAvailability = async () => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:5001/check-email?email=${email}`);
-      setMessage(response.data.message);
-    } catch (error) {
-      console.error("Error checking email:", error);
-      return false; // Assume email doesn't exist if an error occurs
-    }
-  };
-
+  // check that all fields entered match data validations
+  // if not, display an error message saying errors must be fixed
+  // if all good, create the user in the database
   const handleRegister = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:5001/register", {
-        username,
-        email,
-        password,
-      });
-      setMessage(response.data.message);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        setMessage("Error: " + (error.response?.data?.error || error.message));
-      } else if (error instanceof Error) {
-        setMessage("Error: " + error.message);
-      } else {
-        setMessage("An unknown error occurred.");
-      }
+
+    // set button clicked to true
+    setButtonClicked(true);
+
+    // if items are blank but the user has not clicked into any of the TextInputs, set booleans to true
+    // this is to ensure that the user cannot continue if they have not entered any information
+    if (username === '') {
+      setUsernameBlank(true);
+      setUserCreatable(false);
     }
+
+    if (email === '') {
+      setEmailBlank(true);
+      setUserCreatable(false);
+    }
+
+    if (password === '') {
+      setPasswordBlank(true);
+      setUserCreatable(false);
+    }
+
+    // combine all data validation booleans to see if user is creatable
+    setUserCreatable(!usernameBlank && !userLengthBad && !userInvalidCharacters && !userInUse
+        && !emailBlank && !emailInvalidCharacters && !emailInUse
+        && !passwordBlank && !passwordLengthBad && !passwordInvalid && !passwordsMismatch
+    )
+
+    // only add user to database if all data validations are good
+    if (userCreatable) {
+
+      try {
+        const response = await axios.post("http://127.0.0.1:5001/register", {
+          username,
+          email,
+          password,
+        });
+        setMessage(response.data.message);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          setMessage("Error: " + (error.response?.data?.error || error.message));
+        } else if (error instanceof Error) {
+          setMessage("Error: " + error.message);
+        } else {
+          setMessage("An unknown error occurred.");
+        }
+      }
+
+    }
+
   };
   
 
@@ -140,16 +193,18 @@ const CreateAccount = () => {
         {usernameBlank && <Text>Username cannot be blank</Text>}
         {!usernameBlank && userLengthBad && <Text>Username must be between 4 and 30 characters</Text>}
         {!usernameBlank && !userLengthBad && userInvalidCharacters && <Text>Username must only contain letters, numbers, or special characters: - _ .</Text>}
+        {!usernameBlank && !userLengthBad && !userInvalidCharacters && userInUse && <Text>Username is unavailable. Please use a different username, or log in if you already have an account</Text>}
         <Text>Email Address</Text>
         <TextInput
           placeholder="Enter Email"
           style={styles.textInput}
           onChangeText={setEmail}
-          onBlur={() => { checkEmailAvailability() }}
+          onBlur={() => { checkEmail() }}
           value={email}
         />
         {emailBlank && <Text>Email cannot be blank</Text>}
         {!emailBlank && emailInvalidCharacters && <Text>Please enter a valid email</Text>}
+        {!emailBlank && !emailInvalidCharacters && emailInUse && <Text>Email is unavailable. Please use a different email, or log in if you already have an account</Text>}
         <Text>Password</Text>
         <TextInput
           placeholder="Enter Password"
@@ -180,7 +235,7 @@ const CreateAccount = () => {
         </Pressable>
         <Text>Already have an account? Log in </Text>
         <Text onPress={() => router.push("/LoginPage")}>here</Text>
-        <Text>{message}</Text>
+        {!userCreatable && buttonClicked && <Text>Please fix the above errors before creating an account</Text>}
       </SafeAreaView>
     </SafeAreaProvider>
   );
