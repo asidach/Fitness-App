@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Text, StyleSheet, TextInput, Pressable, Alert} from "react-native";
-//import axios from "axios";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -27,6 +27,9 @@ const CreateAccount = () => {
   // variables to store confirmed password information
   const [confirmPass, setConfirmPass] = useState(''); // compare to password to ensure it is entered correctly
   const [passwordsMismatch, setPasswordsMismatch] = useState(false); // check that the password fields match each other
+
+  // error message for server tasks
+  const [message, setMessage] = useState('');
 
   // router to navigate between screens
   const router = useRouter();
@@ -63,28 +66,6 @@ const CreateAccount = () => {
         setEmailInvalidCharacters(!emailPattern.test(email));
     }
 
-    const fetchparams: RequestInit = {
-      method: 'POST',
-      credentials: 'include',
-      headers: {'Content-Type': 'application/json' },
-      body: JSON.stringify({
-          email: email,
-      }),
-    };
-    fetch(`http://172.16.0.230:5001/checkemail`, fetchparams)
-      .then((res) => res.json())
-      .then((res) => {
-          console.log(`${res.message}`);
-
-          if (res.message == 'Email in use') {
-              setPasswordBlank(true);
-          } else {
-              setPasswordBlank(false);
-          }
-
-      });
-
-
   }
 
   // check data validations on password
@@ -116,28 +97,23 @@ const CreateAccount = () => {
   }
 
   const handleRegister = async () => {
-
     try {
-        const response = await fetch("http://172.16.0.230:5001/users/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username, email, password }),
-        });
-  
-        const data = await response.json();
-  
-        if (response.ok) {
-          Alert.alert("Success", "User created successfully");
-        } else {
-          Alert.alert("Error", data.error || "Something went wrong");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Could not connect to server");
+      const response = await axios.post("http://127.0.0.1:5001/register", {
+        username,
+        email,
+        password,
+      });
+      setMessage(response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage("Error: " + (error.response?.data?.error || error.message));
+      } else if (error instanceof Error) {
+        setMessage("Error: " + error.message);
+      } else {
+        setMessage("An unknown error occurred.");
       }
-
-    };
+    }
+  };
   
 
   return (
@@ -194,6 +170,7 @@ const CreateAccount = () => {
         </Pressable>
         <Text>Already have an account? Log in </Text>
         <Text onPress={() => router.push("/LoginPage")}>here</Text>
+        <Text>{message}</Text>
       </SafeAreaView>
     </SafeAreaProvider>
   );
