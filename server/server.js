@@ -22,10 +22,28 @@ const UserSchema = new mongoose.Schema({
   password: String,
 });
 
-// Create the schema
+// create the schema
 const User = mongoose.model("User", UserSchema);
 
-// Check if the email that a user input already exists in the database
+// check if the username that a user input already exists in the database
+app.get("/check-username", async (req, res) => {
+  const { username } = req.query;
+  try {
+    const userExists = await User.findOne({ username });
+    if (userExists) {
+      res.json({ success: true, message: "Username already exists" });
+    } else {
+      res.json({ success: true, message: "Username does not exist" })
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "An unknown error occurred.",
+    });
+  }
+});
+
+// check if the email that a user input already exists in the database
 app.get("/check-email", async (req, res) => {
   const { email } = req.query;
   try {
@@ -43,7 +61,7 @@ app.get("/check-email", async (req, res) => {
   }
 });
 
-// Create a new user in the database
+// create a new user in the database
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
