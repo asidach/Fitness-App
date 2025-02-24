@@ -96,6 +96,16 @@ const CreateAccount = () => {
 
   }
 
+  const checkEmailAvailability = async () => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:5001/check-email?email=${email}`);
+      setMessage(response.data.message);
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false; // Assume email doesn't exist if an error occurs
+    }
+  };
+
   const handleRegister = async () => {
     try {
       const response = await axios.post("http://127.0.0.1:5001/register", {
@@ -135,7 +145,7 @@ const CreateAccount = () => {
           placeholder="Enter Email"
           style={styles.textInput}
           onChangeText={setEmail}
-          onBlur={() => { checkEmail() }}
+          onBlur={() => { checkEmailAvailability() }}
           value={email}
         />
         {emailBlank && <Text>Email cannot be blank</Text>}
