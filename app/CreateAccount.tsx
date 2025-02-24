@@ -63,6 +63,28 @@ const CreateAccount = () => {
         setEmailInvalidCharacters(!emailPattern.test(email));
     }
 
+    const fetchparams: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type': 'application/json' },
+      body: JSON.stringify({
+          email: email,
+      }),
+    };
+    fetch(`http://172.16.0.230:5001/checkemail`, fetchparams)
+      .then((res) => res.json())
+      .then((res) => {
+          console.log(`${res.message}`);
+
+          if (res.message == 'Email in use') {
+              setPasswordBlank(true);
+          } else {
+              setPasswordBlank(false);
+          }
+
+      });
+
+
   }
 
   // check data validations on password

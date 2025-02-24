@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+var db = require('../models/User');
 
 // POST route to create a new user
 router.post("/add", async (req, res) => {
@@ -19,5 +20,30 @@ router.post("/add", async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   });
+
+
+  var emailCheck = function(req, res) {
   
-  module.exports = router;
+      if (!req.body.email) {
+          res.status(400).json({error: 'Request missing parameters'});
+      } else {
+  
+          db.checkEmail(req.body.email, (err, data) => {
+  
+              if (err) {
+                  console.log(err)
+                  res.status(500).json({error: err});
+              } else {
+                  res.status(200).json({message: data});
+              }
+  
+          })
+  
+      }
+  
+  }
+
+  module.exports = {
+    router,
+    emailCheck,
+  };

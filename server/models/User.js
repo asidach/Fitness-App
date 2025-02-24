@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { MongoClient } = require('mongodb');
+let db;
 
 const userSchema = new mongoose.Schema({
   username: String,
@@ -8,4 +10,24 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
-module.exports = User;
+
+var checkEmail = function(email, callback) {
+
+  db.collection('users').findOne({
+      email: email
+  }).then((emailExists) => {
+
+      if (emailExists) {
+          callback(null, 'Email in use');
+      } else {
+          callback(null, 'Success');
+      }
+
+  })
+
+}
+
+module.exports = {
+  User,
+  checkEmail,
+};
