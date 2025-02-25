@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, StyleSheet, TextInput, Pressable, Alert} from "react-native";
+import { Text, StyleSheet, TextInput, Pressable } from "react-native";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
@@ -71,8 +71,9 @@ const CreateAccount = () => {
       && !passwordBlank && !passwordLengthBad && !passwordInvalid && !passwordsMismatch
     )
 
+    // if all data validations pass and the user has been correctly added to the database, go to the homescreen
     if (correctCreation) {
-      router.push("/Chat");
+      router.push({ pathname: "/Chat", params: { username: username } });
     }
 
   });
