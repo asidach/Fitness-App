@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Pressable, View } from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
-
+import { useLocalSearchParams } from "expo-router";
 
 const SetUnits = () => {
 
@@ -9,6 +9,9 @@ const SetUnits = () => {
     const [pounds, setPounds] = useState(false);
     const [miles, setMiles] = useState(false);
     const [inches, setInches] = useState(false);
+
+    // retrieve username from previous page that was used to navigate to this page
+    const { username } = useLocalSearchParams();
 
     return (
         <SafeAreaProvider>
@@ -18,13 +21,13 @@ const SetUnits = () => {
                 <View style={styles.rowcontainer}>
                     <Pressable
                         style={pounds ? styles.nonPressedButton : styles.pressedButton}
-                        onPress={() => setPounds(!pounds)}
+                        onPress={() => setPounds(false)}
                     >
                         <Text>kgs</Text>
                     </Pressable>
                     <Pressable
                         style={pounds ? styles.pressedButton : styles.nonPressedButton}
-                        onPress={() => setPounds(!pounds)}
+                        onPress={() => setPounds(true)}
                     >
                         <Text>lbs</Text>
                     </Pressable>
@@ -33,13 +36,13 @@ const SetUnits = () => {
                 <View style={styles.rowcontainer}>
                     <Pressable
                         style={miles ? styles.nonPressedButton : styles.pressedButton}
-                        onPress={() => setMiles(!miles)}
+                        onPress={() => setMiles(false)}
                     >
                         <Text>kms</Text>
                     </Pressable>
                     <Pressable
                         style={miles ? styles.pressedButton : styles.nonPressedButton}
-                        onPress={() => setMiles(!miles)}
+                        onPress={() => setMiles(true)}
                     >
                         <Text>miles</Text>
                     </Pressable>
@@ -48,13 +51,13 @@ const SetUnits = () => {
                 <View style={styles.rowcontainer}>
                     <Pressable
                         style={inches ? styles.nonPressedButton : styles.pressedButton}
-                        onPress={() => setInches(!inches)}
+                        onPress={() => setInches(false)}
                     >
                         <Text>cms</Text>
                     </Pressable>
                     <Pressable
                         style={inches ? styles.pressedButton : styles.nonPressedButton}
-                        onPress={() => setInches(!inches)}
+                        onPress={() => setInches(true)}
                     >
                         <Text>ins</Text>
                     </Pressable>

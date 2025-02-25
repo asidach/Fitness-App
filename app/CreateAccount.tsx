@@ -73,7 +73,7 @@ const CreateAccount = () => {
 
     // if all data validations pass and the user has been correctly added to the database, go to the homescreen
     if (correctCreation) {
-      router.push({ pathname: "/Chat", params: { username: username } });
+      router.push({ pathname: "/SetUnits", params: { username: username } });
     }
 
   });
