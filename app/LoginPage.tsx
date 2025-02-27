@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Text, StyleSheet, TextInput, Pressable } from "react-native";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import { useAuthStore } from "./store/authStore";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const LoginPage = () => {
@@ -17,11 +18,18 @@ const LoginPage = () => {
   // router to navigate between screens
   const router = useRouter();
 
+  // set global username when the user logs in
+  const setUser = useAuthStore((state) => state.setUser);
+
   // if login information is correct, navigate to the home screen
   useEffect(() => {
 
+    // logic to handle if login was done successfully
     if (correctLogin) {
-      router.push("/Chat");
+      // navigate to Chat page
+      router.push({ pathname: "/tabs/Chat", params: { username: username }});
+      // set global username based on what user entered
+      setUser( { name: username });
     }
 
   });

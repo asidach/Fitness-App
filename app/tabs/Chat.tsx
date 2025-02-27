@@ -1,14 +1,20 @@
 import { useState } from "react";
 import { View, TextInput, Button, Text, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import React from "react";
-const key = require('../key.json');
+import { useAuthStore } from "../store/authStore";
+const key = require('../../key.json');
 
 export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState("");
+
+  const { username } = useLocalSearchParams();
+
+  // get username from global constants
+  const user = useAuthStore((state) => state.username);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -49,6 +55,7 @@ export default function ChatScreen() {
           </Text>
         ))}
       </ScrollView>
+      <Text>Welcome, {user?.name || "Guest"}!</Text>
       <TextInput
         style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
         placeholder="Type a message..."
