@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Text, StyleSheet, Modal, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { useAuthStore } from "../store/authStore";
 
 const NewWorkoutRoutine = () => {
 
@@ -13,6 +14,9 @@ const NewWorkoutRoutine = () => {
 
   // router to navigate between screens
   const router = useRouter();
+
+  // get username from global constants
+  const user = useAuthStore((state) => state.username);
   
   return (
     <SafeAreaProvider>
@@ -62,6 +66,7 @@ const NewWorkoutRoutine = () => {
         <Text>Routine</Text>
         <Pressable
             style={styles.button}
+            onPress={() => { router.push({ pathname: "/ExistingRoutines", params: { username: user?.name } }) }}
         >
             <Text>Existing Routines</Text>
         </Pressable>

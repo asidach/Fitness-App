@@ -1,8 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { View, TextInput, Button, Text, ScrollView } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import axios from "axios";
-import React from "react";
 import { useAuthStore } from "../store/authStore";
 const key = require('../../key.json');
 
@@ -10,8 +9,6 @@ export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState("");
-
-  const { username } = useLocalSearchParams();
 
   // get username from global constants
   const user = useAuthStore((state) => state.username);
