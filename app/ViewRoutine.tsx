@@ -6,8 +6,10 @@ import { Text,
     Modal,
     View,
     TextInput,
-    Button
+    Button,
+    Pressable
  } from "react-native";
+import axios from "axios";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 
@@ -17,16 +19,12 @@ const ViewRoutine = () => {
 
     // workout plan in JSON format, including any edits the user has made
     const [workoutPlan, setWorkoutPlan] = useState<{
-        "goal": string;
         "plan_name": string;
-        "muscle_group": string;
         "username": string;
         "unique_id": string;
         "exercises": { "name": string; "sets": number; "reps": string }[];
       }>({
-        goal: "Build Muscle",
         plan_name: "Push 1",
-        muscle_group: "Chest",
         username: "sidaca",
         unique_id: "sidaca-1",
         exercises: [
@@ -71,6 +69,9 @@ const ViewRoutine = () => {
     const [editedName, setEditedName] = useState('');
     const [editedSets, setEditedSets] = useState('');
     const [editedReps, setEditedReps] = useState('');
+
+    // for testing purposes, test if routine was saved correctly
+    const [createdSuccessfully, setCreatedSuccessfully] = useState(false);
 
     // open the modal and load selected exercise data
   const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
@@ -129,7 +130,31 @@ const ViewRoutine = () => {
           };
         });
       }
+      // close modal when done editing
       setModalVisible(false);
+  };
+
+  // when the user clicks the save button, push it to the database
+  // TODO: based on unique_id, update an existing record rather than creating a new one
+  const saveRoutineToDB = async () => {
+
+    // save parameters in strings
+    const planName = workoutPlan.plan_name;
+    const username = workoutPlan.username;
+    const uniqueID = workoutPlan.unique_id;
+    const exercises = JSON.stringify(workoutPlan.exercises);
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5001/workout-routines", {
+        planName,
+        username,
+        uniqueID,
+        exercises,
+      });
+      setCreatedSuccessfully(response.data.message === "Workout routine saved!");
+    } catch (error) {
+      console.error("Error saving routine:", error);
+    }
   };
 
     return (
@@ -187,6 +212,12 @@ const ViewRoutine = () => {
             </View>
             </View>
         </Modal>
+        <Pressable
+          style={styles.button}
+          onPress={saveRoutineToDB}
+        >
+          <Text>Submit</Text>
+        </Pressable>
         </SafeAreaView>
         </SafeAreaProvider>
     );
@@ -267,6 +298,12 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#fff"
       },
+      button: {
+        height: 20,
+        backgroundColor: "blue",
+        margin: 20,
+        alignItems: "center"
+      }
   });
 
 export default ViewRoutine;
