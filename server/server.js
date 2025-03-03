@@ -15,15 +15,39 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log("MongoDB connected"))
   .catch(err => console.log(err));
 
-// User Schema
+/*
+
+Schemas
+
+*/
+
+// user schema, containing a username, email, and password
 const UserSchema = new mongoose.Schema({
   username: String,
   email: String,
   password: String,
 });
 
-// create the schema
+// create the User object
 const User = mongoose.model("User", UserSchema);
+
+
+// create new schema for routines, including the username it belongs to
+const routineSchema = new mongoose.Schema({
+  plan_name: String,
+  username: String,
+  unique_id: String,
+  exercises: String, // store the individual exercises, of the format { name, sets, reps }
+});
+
+// create the Routine object
+const Routine = mongoose.model("Routine", routineSchema);
+
+/*
+
+Routes
+
+*/
 
 // check if the username that a user input already exists in the database
 app.get("/check-username", async (req, res) => {
@@ -76,6 +100,8 @@ app.post("/register", async (req, res) => {
 
 // attempt login based on the username and password entered
 app.get("/login", async (req, res) => {
+
+  // get parameters from query
   const { username, password } = req.query;
 
   try {
@@ -98,6 +124,18 @@ app.get("/login", async (req, res) => {
       success: false,
       error: error instanceof Error ? error.message : "An unknown error occurred.",
     });
+  }
+});
+
+// Save a new workout routine
+app.post("/workout-routines", async (req, res) => {
+  try {
+    const { plan_name, username, unique_id, exercises } = req.body; // get parameters from body
+    const newRoutine = new Routine({ plan_name, username, unique_id, exercises }); // create new workout record
+    await newRoutine.save();
+    res.json({ message: "Workout routine saved!", workout: newRoutine });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to save workout" });
   }
 });
 
