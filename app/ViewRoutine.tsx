@@ -9,6 +9,7 @@ import { Text,
     Button
  } from "react-native";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
 
 const sampleRoutine = require('./sampleRoutine.json'); // import sample workout while working on OpenAI logic
 
@@ -60,6 +61,9 @@ const ViewRoutine = () => {
     // toggle visibility of modal to edit the workout
     const [modalVisible, setModalVisible] = useState(false);
 
+    // track if we are editing an existing exercise, or adding a new one
+    const [addingNew, setAddingNew] = useState(false);
+
     // exercise to edit, selected by the user
     const [selectedExercise, setSelectedExercise] = useState<{ name: string; sets: number; reps: string } | null>(null);
 
@@ -68,8 +72,9 @@ const ViewRoutine = () => {
     const [editedSets, setEditedSets] = useState('');
     const [editedReps, setEditedReps] = useState('');
 
-    // Open the modal and load selected exercise data
+    // open the modal and load selected exercise data
   const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
+    setAddingNew(false); // not adding a new exercise, selected an existing one
     setSelectedExercise(exercise);
     setEditedName(exercise.name);
     setEditedSets(exercise.sets.toString());
@@ -77,9 +82,36 @@ const ViewRoutine = () => {
     setModalVisible(true);
   };
 
+  // open modal for adding a new exercise
+  const openNewExerciseModal = () => {
+    setAddingNew(true); // adding a new exercise
+    // set values to blank, sincec it is new
+    setEditedName("");
+    setEditedSets("");
+    setEditedReps("");
+    setModalVisible(true);
+  };
+
+  // delete an exercise
+  const deleteExercise = (exerciseName: string) => {
+    setWorkoutPlan((prev) => ({
+      ...prev,
+      exercises: prev.exercises.filter((ex) => ex.name !== exerciseName)
+    }));
+  };
+
     // Save the changes and update JSON
   const saveChanges = () => {
-    if (selectedExercise) {
+    if (addingNew) {
+        // add new exercise to JSON
+        setWorkoutPlan((prev) => ({
+          ...prev,
+          exercises: [
+            ...prev.exercises,
+            { name: editedName, sets: parseInt(editedSets) || 0, reps: editedReps }
+          ]
+        }));
+      } else if (selectedExercise) {
         setWorkoutPlan((prev) => {
           // Ensure prev is defined and has exercises
           if (!prev || !prev.exercises) {
@@ -96,8 +128,8 @@ const ViewRoutine = () => {
             )
           };
         });
-        setModalVisible(false);
       }
+      setModalVisible(false);
   };
 
     return (
@@ -108,43 +140,54 @@ const ViewRoutine = () => {
                     data={workoutPlan.exercises}
                     keyExtractor={(item) => item.name}
                     renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.exerciseCard} onPress={() => openEditModal(item)}>
-                        <Text style={styles.exerciseName}>{item.name}</Text>
-                        <Text style={styles.exerciseDetails}>Sets: {item.sets}</Text>
-                        <Text style={styles.exerciseDetails}>Reps: {item.reps}</Text>
-                    </TouchableOpacity>
-        )}
+                        <View style={styles.exerciseCard}>
+                        {/* Exercise Info */}
+                        <TouchableOpacity style={styles.exerciseInfo} onPress={() => openEditModal(item)}>
+                          <Text style={styles.exerciseName}>{item.name}</Text>
+                          <Text style={styles.exerciseDetails}>Sets: {item.sets}</Text>
+                          <Text style={styles.exerciseDetails}>Reps: {item.reps}</Text>
+                        </TouchableOpacity>
+            
+                        {/* Trash Icon for Deletion */}
+                        <TouchableOpacity onPress={() => deleteExercise(item.name)}>
+                          <Ionicons name="trash" size={24} color="red" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                 />
-                {/* Modal for Editing */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Exercise</Text>
-            <TextInput
-              style={styles.input}
-              value={editedName}
-              onChangeText={setEditedName}
-              placeholder="Exercise Name"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedSets}
-              onChangeText={setEditedSets}
-              placeholder="Sets"
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedReps}
-              onChangeText={setEditedReps}
-              placeholder="Reps"
-            />
-            <Button title="Save" onPress={saveChanges} />
-            <Button title="Cancel" color="red" onPress={() => setModalVisible(false)} />
-          </View>
-        </View>
-      </Modal>
-            </SafeAreaView>
+            <TouchableOpacity style={styles.addButton} onPress={openNewExerciseModal}>
+                <Text style={styles.addButtonText}>+ Add Exercise</Text>
+            </TouchableOpacity>
+        {/* Modal for Editing */}
+        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+            <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Edit Exercise</Text>
+                <TextInput
+                style={styles.input}
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="Exercise Name"
+                />
+                <TextInput
+                style={styles.input}
+                value={editedSets}
+                onChangeText={setEditedSets}
+                placeholder="Sets"
+                keyboardType="numeric"
+                />
+                <TextInput
+                style={styles.input}
+                value={editedReps}
+                onChangeText={setEditedReps}
+                placeholder="Reps"
+                />
+                <Button title="Save" onPress={saveChanges} />
+                <Button title="Cancel" color="red" onPress={() => setModalVisible(false)} />
+            </View>
+            </View>
+        </Modal>
+        </SafeAreaView>
         </SafeAreaProvider>
     );
 
@@ -163,16 +206,22 @@ const styles = StyleSheet.create({
       marginBottom: 20
     },
     exerciseCard: {
-      backgroundColor: "#fff",
-      padding: 15,
-      borderRadius: 10,
-      marginBottom: 10,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowOffset: { width: 0, height: 2 },
-      shadowRadius: 4,
-      elevation: 3
-    },
+        flexDirection: "row", // Row layout for text + trash icon
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: "#fff",
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 10,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 3
+      },
+      exerciseInfo: {
+        flex: 1 // Ensures text takes up remaining space
+      },
     exerciseName: {
       fontSize: 18,
       fontWeight: "bold"
@@ -205,7 +254,19 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         fontSize: 16,
         paddingVertical: 5
-      }
+      },
+      addButton: {
+        backgroundColor: "#007bff",
+        padding: 15,
+        borderRadius: 10,
+        alignItems: "center",
+        marginTop: 20
+      },
+      addButtonText: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#fff"
+      },
   });
 
 export default ViewRoutine;
