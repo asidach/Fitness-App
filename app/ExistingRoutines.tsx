@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
@@ -11,22 +11,27 @@ const ExistingRoutines = () => {
     // hold routines retrieved from the server
     const [routines, setRoutines] = useState([]);
 
-    // check that username and password were entered correctly
-    const getRoutines = async () => {
+    useEffect(() => {
 
-        // contact server to see if login credentials are correct
-        try {
-            const response = await axios.get(`http://127.0.0.1:5001/get-routines?username=${username}`);
-            // if successful, set variable to the routines data
-            if (response.data.message === "Successfully got routines") {
-                setRoutines(response.data.routines);
+        const getRoutines = async () => {
+
+            // contact server to see if login credentials are correct
+            try {
+                const response = await axios.get(`http://127.0.0.1:5001/get-routines?username=${username}`);
+                // if successful, set variable to the routines data
+                if (response.data.message === "Successfully got routines") {
+                    setRoutines(response.data.routines);
+                }
+            } catch (error) {
+                console.error("Error logging in:", error);
+                return false;
             }
-        } catch (error) {
-            console.error("Error logging in:", error);
-            return false;
+
         }
 
- }
+        getRoutines();
+
+    }, [username]);
 
     return (
 
@@ -41,9 +46,6 @@ const ExistingRoutines = () => {
                 </View>
                 )}
             />
-            <Pressable onPress={getRoutines}>
-                <Text>Get Routines</Text>
-            </Pressable>
         </View>
 
     );
