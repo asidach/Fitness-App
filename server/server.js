@@ -130,13 +130,28 @@ app.get("/login", async (req, res) => {
 // Save a new workout routine
 app.post("/workout-routines", async (req, res) => {
   try {
-    const { plan_name, username, unique_id, exercises } = req.body; // get parameters from body
-    const newRoutine = new Routine({ plan_name, username, unique_id, exercises }); // create new workout record
+    const { planName, username, uniqueID, exercises } = req.body; // get parameters from body
+    const newRoutine = new Routine({ plan_name: planName, username, unique_id: uniqueID, exercises }); // create new workout record
     await newRoutine.save();
     res.json({ message: "Workout routine saved!", workout: newRoutine });
   } catch (error) {
-    res.status(500).json({ error: "Failed to save workout" });
+    res.status(500).json({ error: "Failed to save routine" });
   }
+});
+
+// Get workout routines that belong to a user
+app.get("/get-routines", async (req, res) => {
+
+  // get parameters from query
+  const { username } = req.query;
+
+  try {
+    const routines = await Routine.find({ username: username });
+    res.json({ message: "Successfully got routines", routines: routines });
+  } catch {
+    res.status(500).json({ error: "Failed to fetch routines" });
+  }
+
 });
 
 // Start Server
