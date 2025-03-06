@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import axios from "axios";
-import { useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const ExistingRoutines = () => {
 
@@ -11,6 +11,10 @@ const ExistingRoutines = () => {
     // hold routines retrieved from the server
     const [routines, setRoutines] = useState([]);
 
+    // router to push to specific routine page
+    const router = useRouter();
+
+    // useEffect to load the existing routines automatically
     useEffect(() => {
 
         const getRoutines = async () => {
@@ -33,6 +37,13 @@ const ExistingRoutines = () => {
 
     }, [username]);
 
+    // get the routine name based on the routine that the user clicked
+    // navigate to the full view for that single routine
+    const getRoutine = (uniqueRoutineName: string) => {
+
+        router.push({ pathname: "/ViewRoutine", params: { routineID: uniqueRoutineName }});
+    }
+
     return (
 
         <View>
@@ -42,7 +53,9 @@ const ExistingRoutines = () => {
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                 <View style={styles.listItem}>
-                    <Text style={styles.planText}>{item.plan_name}</Text>
+                    <TouchableOpacity onPress={() => { getRoutine(item.unique_id) }}>
+                        <Text style={styles.planText}>{item.plan_name}</Text>
+                    </TouchableOpacity>
                 </View>
                 )}
             />

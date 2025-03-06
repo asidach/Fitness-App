@@ -154,6 +154,22 @@ app.get("/get-routines", async (req, res) => {
 
 });
 
+// Get a single workout routine based on its unique ID
+app.get("/get-single-routine", async (req, res) => {
+
+  // get parameters from query
+  const { unique_id } = req.query;
+
+  try {
+    const routine = await Routine.findOne({ unique_id: unique_id });
+    res.json({ message: "Successfully got routine", routine: routine });
+  } catch {
+    res.status(500).json({ error: "Failed to fetch routine" });
+  }
+
+});
+
+
 // Start Server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
