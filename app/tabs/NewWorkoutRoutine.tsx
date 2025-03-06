@@ -100,6 +100,7 @@ const NewWorkoutRoutine = () => {
                 </Pressable>
                 <Pressable
                 style={styles.button}
+                onPress={() => { router.push({ pathname: "/NewBlankRoutine", params: { username: user?.name }}) }}
                 >
                     <Text>Create blank routine</Text>
                 </Pressable>
