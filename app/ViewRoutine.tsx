@@ -14,7 +14,6 @@ import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 
-//const sampleRoutine = require('./sampleRoutine.json'); // import sample workout while working on OpenAI logic
 
 const ViewRoutine = () => {
 
@@ -60,7 +59,10 @@ const ViewRoutine = () => {
     // toggle visibility of modal to edit the workout
     const [modalVisible, setModalVisible] = useState(false);
 
-    // track if submit button has been clicked or not
+    // track if any button has been clicked or not
+    // used in useEffect, so that when screen is first loaded, it pulls from database
+    // do not want to be constantly pulling from the database
+    // if any changes are made (by clicking on any screen elements), want to reflect the changes the user just made
     const [submitClicked, setSubmitClicked] = useState(false);
 
     // track if we are editing an existing exercise, or adding a new one
@@ -80,8 +82,10 @@ const ViewRoutine = () => {
     // unique ID of the routine we are looking at
     const { routineID } = useLocalSearchParams();
 
+    // load the initial routine from this unique id
     useEffect(() => {
 
+      // only load directly from database if the user has not edited anything
       if (!submitClicked) {
         const getRoutine = async () => {
 
@@ -122,7 +126,7 @@ const ViewRoutine = () => {
     // open the modal and load selected exercise data
   const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
     setAddingNew(false); // not adding a new exercise, selected an existing one
-    setSubmitClicked(true);
+    setSubmitClicked(true); // user may have edited something
     setSelectedExercise(exercise);
     setEditedName(exercise.name);
     setEditedSets(exercise.sets.toString());
@@ -133,7 +137,7 @@ const ViewRoutine = () => {
   // open modal for adding a new exercise
   const openNewExerciseModal = () => {
     setAddingNew(true); // adding a new exercise
-    setSubmitClicked(true);
+    setSubmitClicked(true); // user may have edited something
     // set values to blank, sincec it is new
     setEditedName("");
     setEditedSets("");
@@ -143,6 +147,7 @@ const ViewRoutine = () => {
 
   // delete an exercise
   const deleteExercise = (exerciseName: string) => {
+    setSubmitClicked(true); // user may have edited something
     setWorkoutPlan((prev) => ({
       ...prev,
       exercises: prev.exercises.filter((ex) => ex.name !== exerciseName)
