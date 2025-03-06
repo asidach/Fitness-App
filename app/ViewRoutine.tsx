@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Text,
     FlatList,
     TouchableOpacity,
@@ -12,8 +12,9 @@ import { Text,
 import axios from "axios";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 
-const sampleRoutine = require('./sampleRoutine.json'); // import sample workout while working on OpenAI logic
+//const sampleRoutine = require('./sampleRoutine.json'); // import sample workout while working on OpenAI logic
 
 const ViewRoutine = () => {
 
@@ -72,6 +73,46 @@ const ViewRoutine = () => {
 
     // for testing purposes, test if routine was saved correctly
     const [createdSuccessfully, setCreatedSuccessfully] = useState(false);
+
+    // unique ID of the routine we are looking at
+    const { routineID } = useLocalSearchParams();
+
+    useEffect(() => {
+
+      const getRoutine = async () => {
+
+        // contact server to see if login credentials are correct
+        try {
+            const response = await axios.get(`http://127.0.0.1:5001/get-single-routine?unique_id=${routineID}`);
+            // if successful, set variable to the routine data
+            if (response.data.message === "Successfully got routine") {
+                
+            let routine = response.data.routine;
+
+            // Ensure exercises is an array and not a string
+          if (typeof routine.exercises === "string") {
+            try {
+              routine.exercises = JSON.parse(routine.exercises);  // Convert string to array
+            } catch (error) {
+              console.error("Failed to parse exercises:", error);
+              routine.exercises = [];  // Fallback to an empty array
+            }
+        }
+
+          setWorkoutPlan(routine);
+
+      }
+
+        } catch (error) {
+            console.error("Error logging in:", error);
+            return false;
+        }
+
+    }
+
+    getRoutine();
+
+    });
 
     // open the modal and load selected exercise data
   const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
@@ -163,7 +204,7 @@ const ViewRoutine = () => {
                 <Text>{workoutPlan.plan_name}</Text>
                 <FlatList
                     data={workoutPlan.exercises}
-                    keyExtractor={(item) => item.name}
+                    keyExtractor={(item, index) => `${item.name}-${index}`}
                     renderItem={({ item }) => (
                         <View style={styles.exerciseCard}>
                         {/* Exercise Info */}
