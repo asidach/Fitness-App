@@ -60,6 +60,9 @@ const ViewRoutine = () => {
     // toggle visibility of modal to edit the workout
     const [modalVisible, setModalVisible] = useState(false);
 
+    // track if submit button has been clicked or not
+    const [submitClicked, setSubmitClicked] = useState(false);
+
     // track if we are editing an existing exercise, or adding a new one
     const [addingNew, setAddingNew] = useState(false);
 
@@ -79,44 +82,47 @@ const ViewRoutine = () => {
 
     useEffect(() => {
 
-      const getRoutine = async () => {
+      if (!submitClicked) {
+        const getRoutine = async () => {
 
-        // contact server to see if login credentials are correct
-        try {
-            const response = await axios.get(`http://127.0.0.1:5001/get-single-routine?unique_id=${routineID}`);
-            // if successful, set variable to the routine data
-            if (response.data.message === "Successfully got routine") {
-                
-            let routine = response.data.routine;
+          // contact server to get routine
+          try {
+              const response = await axios.get(`http://127.0.0.1:5001/get-single-routine?unique_id=${routineID}`);
+              // if successful, set variable to the routine data
+              if (response.data.message === "Successfully got routine") {
+                  
+              let routine = response.data.routine;
 
-            // Ensure exercises is an array and not a string
-          if (typeof routine.exercises === "string") {
-            try {
-              routine.exercises = JSON.parse(routine.exercises);  // Convert string to array
-            } catch (error) {
-              console.error("Failed to parse exercises:", error);
-              routine.exercises = [];  // Fallback to an empty array
-            }
+              // Ensure exercises is an array and not a string
+            if (typeof routine.exercises === "string") {
+              try {
+                routine.exercises = JSON.parse(routine.exercises);  // Convert string to array
+              } catch (error) {
+                console.error("Failed to parse exercises:", error);
+                routine.exercises = [];  // Fallback to an empty array
+              }
+          }
+
+            setWorkoutPlan(routine);
+
         }
 
-          setWorkoutPlan(routine);
+          } catch (error) {
+              console.error("Error logging in:", error);
+              return false;
+          }
 
       }
 
-        } catch (error) {
-            console.error("Error logging in:", error);
-            return false;
-        }
-
+      getRoutine();
     }
-
-    getRoutine();
 
     });
 
     // open the modal and load selected exercise data
   const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
     setAddingNew(false); // not adding a new exercise, selected an existing one
+    setSubmitClicked(true);
     setSelectedExercise(exercise);
     setEditedName(exercise.name);
     setEditedSets(exercise.sets.toString());
@@ -127,6 +133,7 @@ const ViewRoutine = () => {
   // open modal for adding a new exercise
   const openNewExerciseModal = () => {
     setAddingNew(true); // adding a new exercise
+    setSubmitClicked(true);
     // set values to blank, sincec it is new
     setEditedName("");
     setEditedSets("");
@@ -193,6 +200,7 @@ const ViewRoutine = () => {
         exercises,
       });
       setCreatedSuccessfully(response.data.message === "Workout routine saved!");
+      setSubmitClicked(true);
     } catch (error) {
       console.error("Error saving routine:", error);
     }

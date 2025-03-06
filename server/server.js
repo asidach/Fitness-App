@@ -127,13 +127,29 @@ app.get("/login", async (req, res) => {
   }
 });
 
-// Save a new workout routine
+// Save a new workout routine or update an existing one
 app.post("/workout-routines", async (req, res) => {
   try {
     const { planName, username, uniqueID, exercises } = req.body; // get parameters from body
-    const newRoutine = new Routine({ plan_name: planName, username, unique_id: uniqueID, exercises }); // create new workout record
-    await newRoutine.save();
-    res.json({ message: "Workout routine saved!", workout: newRoutine });
+
+    // check that a routine exists based on unique_id
+    // if it does, update the other parameters
+    // if not, create a new record in the database 
+    const routine = await Routine.findOneAndUpdate(
+        { unique_id: uniqueID }, // find by unique id
+        {
+          $set: {
+            plan_name: planName,
+            username: username,
+            exercises: exercises
+          }
+        },
+        { upsert: true, new: true } // additional parameters, update if exists and create new if not exists
+    );
+
+    //const newRoutine = new Routine({ plan_name: planName, username, unique_id: uniqueID, exercises }); // create new workout record
+    //await newRoutine.save();
+    res.json({ message: "Workout routine saved!", workout: routine });
   } catch (error) {
     res.status(500).json({ error: "Failed to save routine" });
   }
