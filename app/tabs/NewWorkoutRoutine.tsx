@@ -47,6 +47,7 @@ const NewWorkoutRoutine = () => {
               </Pressable>
               <Pressable
                 style={styles.button}
+                onPress={() => { router.push({ pathname: "/FromExistingRoutine", params: { username: user?.name }}) }}
                >
                 <Text>Create from existing routine</Text>
                 </Pressable>

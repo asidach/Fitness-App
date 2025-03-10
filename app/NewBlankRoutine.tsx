@@ -87,9 +87,10 @@ const newBlankRoutine = () => {
 
     // user can set plan name for the routine they are creating
     const [planName, setPlanName] = useState('');
-
-    // check that user has entered a plan naem
+    // check that user has entered a plan name
     const [planBlank, setPlanBlank] = useState(false);
+    // check that the user does not already have a plan with the same name they entered
+    const [planExists, setPlanExists] = useState(false);
 
     // exercise to edit, selected by the user
     const [selectedExercise, setSelectedExercise] = useState<{ name: string; sets: number; reps: string } | null>(null);
@@ -122,6 +123,16 @@ const newBlankRoutine = () => {
     // function called when user exits out of plan name TextInput
     async function checkPlanName() {
       setPlanBlank(planName === '');
+
+      // contact server to see if email exists in database
+      try {
+        const response = await axios.get(`http://127.0.0.1:5001/check-routine?username=${username}&routineName=${planName}`);
+        setPlanExists(response.data.message === 'Routine already exists'); // check response message, certain message shows plan already exists
+      } catch (error) {
+        console.error("Error checking email:", error);
+        return false; // Assume email doesn't exist if an error occurs
+      }
+
     }
 
     // handle the cancellation of a modal by hiding it and changing any data validation booleans
@@ -211,6 +222,7 @@ const newBlankRoutine = () => {
 
     // save routine to Routines schema
     try {
+
       const response = await axios.post("http://127.0.0.1:5001/workout-routines", {
         planName,
         username,
@@ -246,6 +258,7 @@ const newBlankRoutine = () => {
               placeholder="Routine Name"
             />
             {planBlank && <Text>Routine must be given a name</Text>}
+            {!planBlank && planExists && <Text>You already have a routine with this name. Please rename this routine</Text>}
             <FlatList
                 data={workoutPlan.exercises}
                 keyExtractor={(item, index) => `${item.name}-${index}`}

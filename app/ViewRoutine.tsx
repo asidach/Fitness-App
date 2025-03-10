@@ -24,36 +24,10 @@ const ViewRoutine = () => {
         "unique_id": string;
         "exercises": { "name": string; "sets": number; "reps": string }[];
       }>({
-        plan_name: "Push 1",
-        username: "sidaca",
-        unique_id: "sidaca-1",
-        exercises: [
-          {
-            name: "Flat Barbell Bench Press",
-            sets: 4,
-            reps: "6-8"
-          },
-          {
-            name: "Incline Dumbbell Press",
-            sets: 3,
-            reps: "8-10"
-          },
-          {
-            name: "Chest Dips",
-            sets: 3,
-            reps: "10-12"
-          },
-          {
-            name: "Cable Flys",
-            sets: 3,
-            reps: "12-15"
-          },
-          {
-            name: "Push-Ups (Finisher)",
-            sets: 2,
-            reps: "To Failure"
-          }
-        ]
+        plan_name: "",
+        username: "",
+        unique_id: "",
+        exercises: []
       });
     
     // toggle visibility of modal to edit the workout

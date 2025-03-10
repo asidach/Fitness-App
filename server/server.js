@@ -222,6 +222,7 @@ app.get("/get-routines", async (req, res) => {
 
 });
 
+
 // Get a single workout routine based on its unique ID
 app.get("/get-single-routine", async (req, res) => {
 
@@ -235,6 +236,35 @@ app.get("/get-single-routine", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch routine" });
   }
 
+});
+
+
+
+// check that a routine name for a user is unique
+app.get("/check-routine", async (req, res) => {
+
+  // get parameters from request query
+  const { username, routineName } = req.query;
+
+  try {
+    // check if a routine exists that matches the username and routine name
+    const routineExists = await Routine.findOne({ 
+      $and: [
+        { username: username },
+        { plan_name: routineName }
+      ]
+    });
+    if (routineExists) {
+      res.json({ success: true, message: "Routine already exists" });
+    } else {
+      res.json({ success: true, message: "Routine does not exist" })
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "An unknown error occurred.",
+    });
+  }
 });
 
 
