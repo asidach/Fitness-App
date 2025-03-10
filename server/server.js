@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const internal = require("stream");
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ const UserSchema = new mongoose.Schema({
   username: String,
   email: String,
   password: String,
+  numRoutines: String,
 });
 
 // create the User object
@@ -67,6 +69,7 @@ app.get("/check-username", async (req, res) => {
   }
 });
 
+
 // check if the email that a user input already exists in the database
 app.get("/check-email", async (req, res) => {
   const { email } = req.query;
@@ -89,14 +92,15 @@ app.get("/check-email", async (req, res) => {
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password });
+    const numRoutines = '0'; // set default num of routines a user has, when the user record is created they have none
+    const newUser = new User({ username, email, password, numRoutines });
     await newUser.save();
     res.json({ success: true, message: "User created successfully!" });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 // attempt login based on the username and password entered
 app.get("/login", async (req, res) => {
@@ -127,6 +131,24 @@ app.get("/login", async (req, res) => {
   }
 });
 
+
+// Get number of routines a user has saved to their account
+app.get("/get-num-routines", async (req, res) => {
+
+  // get parameters from query
+  const { username } = req.query;
+
+  try {
+    // find user in database, using User schema
+    const user = await User.findOne({ username: username });
+    res.json({ message: "Successfully found user", numRoutines: user.numRoutines });
+  } catch {
+    res.status(500).json({ error: "Could not find user" });
+  }
+
+});
+
+
 // Save a new workout routine or update an existing one
 app.post("/workout-routines", async (req, res) => {
   try {
@@ -154,6 +176,36 @@ app.post("/workout-routines", async (req, res) => {
     res.status(500).json({ error: "Failed to save routine" });
   }
 });
+
+
+// update the number of routines tied to a user when they create a new one
+app.post("/update-num-routines", async(req, res) => {
+
+  // get parameters from body
+  const { username, numRoutines } = req.body;
+
+  try {
+    // check that a user exists based off of username
+    // if it does, update numRoutines
+    // if not, return an error
+    const updatedUser = await User.findOneAndUpdate(
+      { username: username }, // find User record by username
+      {
+        $set: {
+          numRoutines: numRoutines
+        }
+      },
+      { upsert: true, new: false } // upsert if a user exists, do not create a new one if the user does not exist
+    )
+
+    res.json({ message: "numRoutines updated!", newUser: updatedUser });
+
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update number of routines" });
+  }
+
+});
+
 
 // Get workout routines that belong to a user
 app.get("/get-routines", async (req, res) => {

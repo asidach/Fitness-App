@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Text,
     FlatList,
@@ -19,6 +19,52 @@ const newBlankRoutine = () => {
     // get username from the screen we previously navigated from
     const { username } = useLocalSearchParams();
 
+    // number of routines tied to the user
+    const [numRoutines, setNumRoutines] = useState('');
+
+    // boolean to lock useEffect after it is done for the first time, do not want to keep making calls to the server
+    const [gotNumRoutines, setGotNumRoutines] = useState(false);
+
+    // useEffect to get number of routines tied to the user
+    useEffect(() => {
+
+      if (numRoutines !== '') {
+        setWorkoutPlan((prev) => ({
+          ...prev,
+          unique_id: `${username}-${numRoutines}`,
+        }));
+      }
+    
+
+      // only make server call if we haven't previously
+      if (!gotNumRoutines) {
+
+          const getNumRoutines = async () => {
+
+              // contact server to see if login credentials are correct
+              try {
+                  const response = await axios.get(`http://127.0.0.1:5001/get-num-routines?username=${username}`);
+                  // if successful, set variable to the routines data
+                  if (response.data.message === "Successfully found user") {
+                      setNumRoutines(response.data.numRoutines);
+                  }
+              } catch (error) {
+                  console.error("Error getting user:", error);
+                  return false;
+              }
+
+          }
+
+          // call the function to make the server call
+          getNumRoutines();
+            
+          // set boolean to true to stop the loop
+          setGotNumRoutines(true);
+
+      }
+
+    }, [username]);
+
     // workout plan in JSON format, including any edits the user has made
     const [workoutPlan, setWorkoutPlan] = useState<{
         "plan_name": string;
@@ -28,7 +74,7 @@ const newBlankRoutine = () => {
       }>({
         plan_name: "New Workout 1",
         username: `${username}`,
-        unique_id: "sidaca-2",
+        unique_id: `${username}-${numRoutines}`,
         exercises: [] // blank to initialize
       });
 
@@ -46,15 +92,16 @@ const newBlankRoutine = () => {
     const [editedSets, setEditedSets] = useState('');
     const [editedReps, setEditedReps] = useState('');
 
-        // open the modal and load selected exercise data
-  const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
-    setAddingNew(false); // not adding a new exercise, selected an existing one
-    setSelectedExercise(exercise);
-    setEditedName(exercise.name);
-    setEditedSets(exercise.sets.toString());
-    setEditedReps(exercise.reps);
-    setModalVisible(true);
-  };
+    
+    // open the modal and load selected exercise data
+    const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
+        setAddingNew(false); // not adding a new exercise, selected an existing one
+        setSelectedExercise(exercise);
+        setEditedName(exercise.name);
+        setEditedSets(exercise.sets.toString());
+        setEditedReps(exercise.reps);
+        setModalVisible(true);
+    };
 
   // open modal for adding a new exercise
   const openNewExerciseModal = () => {
@@ -117,6 +164,7 @@ const newBlankRoutine = () => {
     const uniqueID = workoutPlan.unique_id;
     const exercises = JSON.stringify(workoutPlan.exercises);
 
+    // save routine to Routines schema
     try {
       const response = await axios.post("http://127.0.0.1:5001/workout-routines", {
         planName,
@@ -124,9 +172,22 @@ const newBlankRoutine = () => {
         uniqueID,
         exercises,
       });
+
+      // increase the number of routines for the user
+      // Increase the number of routines for the user **before** updating in DB
+      const updatedNumRoutines = String(Number(numRoutines) + 1);
+      setNumRoutines(updatedNumRoutines);
+
+      // Update the numRoutines value in the database
+      await axios.post("http://127.0.0.1:5001/update-num-routines", {
+          username: username,
+          numRoutines: updatedNumRoutines, // Send the updated value
+      });
+
     } catch (error) {
       console.error("Error saving routine:", error);
     }
+
   };
 
   return (
@@ -191,6 +252,7 @@ const newBlankRoutine = () => {
     >
       <Text>Submit</Text>
     </Pressable>
+    <Text>{numRoutines}</Text>
     </SafeAreaView>
     </SafeAreaProvider>
 );
