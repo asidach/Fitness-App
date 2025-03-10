@@ -28,6 +28,7 @@ const newBlankRoutine = () => {
     // useEffect to get number of routines tied to the user
     useEffect(() => {
 
+      // if numRoutines is not blank and has been set, load the previous routine
       if (numRoutines !== '') {
         setWorkoutPlan((prev) => ({
           ...prev,
@@ -72,7 +73,7 @@ const newBlankRoutine = () => {
         "unique_id": string;
         "exercises": { "name": string; "sets": number; "reps": string }[];
       }>({
-        plan_name: "New Workout 1",
+        plan_name: "New Workout",
         username: `${username}`,
         unique_id: `${username}-${numRoutines}`,
         exercises: [] // blank to initialize
@@ -84,6 +85,12 @@ const newBlankRoutine = () => {
     // track if we are editing an existing exercise, or adding a new one
     const [addingNew, setAddingNew] = useState(false);
 
+    // user can set plan name for the routine they are creating
+    const [planName, setPlanName] = useState('');
+
+    // check that user has entered a plan naem
+    const [planBlank, setPlanBlank] = useState(false);
+
     // exercise to edit, selected by the user
     const [selectedExercise, setSelectedExercise] = useState<{ name: string; sets: number; reps: string } | null>(null);
 
@@ -92,6 +99,44 @@ const newBlankRoutine = () => {
     const [editedSets, setEditedSets] = useState('');
     const [editedReps, setEditedReps] = useState('');
 
+    // check that values in modal have been filled out before submitting
+    const [nameBlank, setNameBlank] = useState(false); // exercise name is blank
+    const [setsBlank, setSetsBlank] = useState(false); // number of sets is blank
+    const [repsBlank, setRepsBlank] = useState(false); // number of reps is blank
+
+    // function called when user exits out of exercise name TextInput in modal
+    async function checkExercise() {
+      setNameBlank(editedName === '');
+    }
+
+    // function called when user exits out of sets TextInput in modal
+    async function checkSets() {
+      setSetsBlank(editedSets === '');
+    }
+
+    // function called when user exits out of reps TextInput in modal
+    async function checkReps() {
+      setRepsBlank(editedReps === '');
+    }
+
+    // function called when user exits out of plan name TextInput
+    async function checkPlanName() {
+      setPlanBlank(planName === '');
+    }
+
+    // handle the cancellation of a modal by hiding it and changing any data validation booleans
+    const cancelModal = () => {
+
+      setModalVisible(false); // hide modal
+      
+      // set blank data validation booleans to true
+      // to ensure that error text does not show up if user re-opens modal
+      setNameBlank(false);
+      setSetsBlank(false);
+      setRepsBlank(false);
+
+    }
+    
     
     // open the modal and load selected exercise data
     const openEditModal = (exercise: { name: string; sets: number; reps: string }) => {
@@ -193,8 +238,14 @@ const newBlankRoutine = () => {
   return (
     <SafeAreaProvider>
         <SafeAreaView>
-            <Text>{workoutPlan.plan_name}</Text>
-            <Text>{username}</Text>
+            <TextInput
+              style={styles.input}
+              value={planName}
+              onChangeText={setPlanName}
+              onBlur={() => { checkPlanName() }}
+              placeholder="Routine Name"
+            />
+            {planBlank && <Text>Routine must be given a name</Text>}
             <FlatList
                 data={workoutPlan.exercises}
                 keyExtractor={(item, index) => `${item.name}-${index}`}
@@ -226,23 +277,28 @@ const newBlankRoutine = () => {
             style={styles.input}
             value={editedName}
             onChangeText={setEditedName}
+            onBlur={() => { checkExercise() }}
             placeholder="Exercise Name"
             />
+            {nameBlank && <Text>Exercise name cannot be blank</Text>}
             <TextInput
             style={styles.input}
             value={editedSets}
             onChangeText={setEditedSets}
+            onBlur={() => { checkSets() }}
             placeholder="Sets"
-            keyboardType="numeric"
             />
+            {setsBlank && <Text>Number of sets cannot be blank</Text>}
             <TextInput
             style={styles.input}
             value={editedReps}
             onChangeText={setEditedReps}
+            onBlur={() => { checkReps() }}
             placeholder="Reps"
             />
+            {repsBlank && <Text>Number of reps cannot be blank</Text>}
             <Button title="Save" onPress={saveChanges} />
-            <Button title="Cancel" color="red" onPress={() => setModalVisible(false)} />
+            <Button title="Cancel" color="red" onPress={() => { cancelModal() }} />
         </View>
         </View>
     </Modal>
@@ -252,7 +308,6 @@ const newBlankRoutine = () => {
     >
       <Text>Submit</Text>
     </Pressable>
-    <Text>{numRoutines}</Text>
     </SafeAreaView>
     </SafeAreaProvider>
 );
