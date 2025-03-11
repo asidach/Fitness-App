@@ -1,35 +1,31 @@
 {
-    "workout_plan": {
-      "goal": "Build Muscle",
-      "plan_name": "Push 1",
-      "muscle_group": "Chest",
+    "workout": {
+      "workout_name": "Push 1",
       "username": "sidaca",
       "unique_id": "sidaca-1",
+      "date": "01-01-2024",
       "exercises": [
         {
           "name": "Flat Barbell Bench Press",
-          "sets": 4,
-          "reps": "6-8"
+          "sets": [
+            {"set-id": "1", "reps": 20, "weight": "45 lb"},
+            {"set-id": "2", "reps": 12, "weight": "135 lb"},
+            {"set-id": "3", "reps": 10, "weight": "185 lb"}
+          ]
         },
         {
           "name": "Incline Dumbbell Press",
-          "sets": 3,
-          "reps": "8-10"
+          "sets": [
+            {"set-id": "1", "reps": 10, "weight": "30 lb dumbells"},
+            {"set-id": "2", "reps": 12, "weight": "20 lb dumbells"}
+          ]
         },
         {
           "name": "Chest Dips",
-          "sets": 3,
-          "reps": "10-12"
-        },
-        {
-          "name": "Cable Flys",
-          "sets": 3,
-          "reps": "12-15"
-        },
-        {
-          "name": "Push-Ups (Finisher)",
-          "sets": 2,
-          "reps": "To Failure"
+          "sets": [
+            {"set-id": "1", "reps": 12, "weight": "bodyweight"},
+            {"set-id": "2", "reps": 10, "weight": "10 lbs added"}
+          ]
         }
       ]
     }
