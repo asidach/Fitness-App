@@ -48,6 +48,7 @@ const ViewWorkout = () => {
         <SafeAreaProvider>
             <SafeAreaView>
                 <Text style={styles.header}>{workout.workout_name}</Text>
+                <Text>Hello {Number("12-14")}</Text>
                 <ScrollView>
                     <SectionList
                         sections={formattedData}

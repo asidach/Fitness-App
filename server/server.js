@@ -28,6 +28,9 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   numRoutines: String,
+  weightUnits: String,
+  distanceUnits: String,
+  measurementsUnits: String
 });
 
 // create the User object
@@ -92,13 +95,48 @@ app.get("/check-email", async (req, res) => {
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
+
+    // set default units
+    const weightUnits = "kgs";
+    const distanceUnits = "kms";
+    const measurementsUnits = "cms";
+
     const numRoutines = '0'; // set default num of routines a user has, when the user record is created they have none
-    const newUser = new User({ username, email, password, numRoutines });
+    const newUser = new User({ username, email, password, numRoutines, weightUnits, distanceUnits, measurementsUnits });
     await newUser.save();
     res.json({ success: true, message: "User created successfully!" });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+
+// update default units for a user
+app.post("/set-units", async (req, res) => {
+  const { username, weightUnits, distanceUnits, measurementsUnits } = req.body;
+
+  try {
+
+    // find user based on the username
+    // update their units
+    const updatedUser = await User.findOneAndUpdate(
+      { username: username }, // find User record by username
+      {
+        $set: {
+          weightUnits: weightUnits,
+          distanceUnits: distanceUnits,
+          measurementsUnits: measurementsUnits
+        }
+      },
+      { upsert: true, new: false } // upsert if a user exists, do not create a new one if the user does not exist
+    )
+
+    res.json({ message: "units updated!", newUser: updatedUser });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+
 });
 
 
