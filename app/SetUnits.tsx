@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, Pressable, View } from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { useLocalSearchParams } from "expo-router";
@@ -11,16 +11,25 @@ const SetUnits = () => {
     const [miles, setMiles] = useState(false);
     const [inches, setInches] = useState(false);
 
+    // string representations of units
+    const [weightVal, setWeightVal] = useState("kgs");
+    const [distanceVal, setDistanceVal] = useState("kms");
+    const [measurementsVal, setMeasurementsVal] = useState("cms");
+
     // retrieve username from previous page that was used to navigate to this page
     const { username } = useLocalSearchParams();
 
-    // when the user clicks the submit button, update their default units in the backend
-    const updateUnits = async () => {
+    useEffect(() => {
 
-        // save strings representing the units depending on the values of the useState booleans
-        const weightUnits = pounds ? "lbs" : "kgs";
-        const distanceUnits = miles ? "miles" : "kms";
-        const measurementsUnits = inches ? "ins" : "cms";
+        // update string representations of units used
+        setWeightVal(pounds ? "lbs" : "kgs");
+        setDistanceVal(miles ? "miles" : "kms");
+        setMeasurementsVal(inches ? "ins" : "cms");
+
+    }, [pounds, miles, inches]);
+
+    // when the user clicks the submit button, update their default units in the backend 
+    const updateUnits = async () => {
 
         // for testing purposes, if there is no username, assign default value
         const usernameNonBlank = username ? username : "test";
@@ -29,10 +38,10 @@ const SetUnits = () => {
         try {
 
             const response = await axios.post("http://127.0.0.1:5001/set-units", {
-                usernameNonBlank,
-                weightUnits,
-                distanceUnits,
-                measurementsUnits
+                username,
+                weightVal,
+                distanceVal,
+                measurementsVal
               });
 
         } catch  (error) {
@@ -92,10 +101,14 @@ const SetUnits = () => {
                 </View>
                 <Pressable
                     style={styles.pressedButton}
-                    onPress={() => updateUnits}
+                    onPress={() => { updateUnits() }}
                 >
                     <Text>Submit</Text>
                 </Pressable>
+                <Text>{weightVal}</Text>
+                <Text>{distanceVal}</Text>
+                <Text>{measurementsVal}</Text>
+                <Text>{username}</Text>
             </SafeAreaView>
         </SafeAreaProvider>
     );

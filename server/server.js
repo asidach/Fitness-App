@@ -113,7 +113,10 @@ app.post("/register", async (req, res) => {
 
 // update default units for a user
 app.post("/set-units", async (req, res) => {
-  const { username, weightUnits, distanceUnits, measurementsUnits } = req.body;
+
+  const { username, weightVal, distanceVal, measurementsVal } = req.body;
+
+  console.log(weightVal);
 
   try {
 
@@ -123,9 +126,9 @@ app.post("/set-units", async (req, res) => {
       { username: username }, // find User record by username
       {
         $set: {
-          weightUnits: weightUnits,
-          distanceUnits: distanceUnits,
-          measurementsUnits: measurementsUnits
+          weightUnits: weightVal,
+          distanceUnits: distanceVal,
+          measurementsUnits: measurementsVal,
         }
       },
       { upsert: true, new: false } // upsert if a user exists, do not create a new one if the user does not exist
